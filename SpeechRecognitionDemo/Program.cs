@@ -5,27 +5,32 @@ namespace SpeechRecognitionDemo
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
             // Initialization
-            var micClient = SpeechRecognitionServiceFactory.CreateMicrophoneClient(SpeechRecognitionMode.LongDictation, "ja-JP", "<your key>");
-            micClient.OnMicrophoneStatus += (sender, eventArgs) =>
+            var micClient = SpeechRecognitionServiceFactory.CreateMicrophoneClient(SpeechRecognitionMode.LongDictation, "ja-JP", "04a349ccb0bd4c4eb6d026aa5b363a7a");
+            micClient.OnMicrophoneStatus += (s, e) =>
             {
-                Console.WriteLine("[{0}]", (eventArgs.Recording) ? "MIC ON" : "MIC OFF");
+                Console.WriteLine("[{0}]", (e.Recording) ? "MIC ON" : "MIC OFF");
             };
 
-            micClient.OnResponseReceived += (sender, eventArgs) =>
+            micClient.OnConversationError += (s, e) =>
             {
-                if (eventArgs.PhraseResponse.RecognitionStatus == RecognitionStatus.RecognitionSuccess)
-                {
-                    Console.WriteLine(eventArgs.PhraseResponse.Results[0].DisplayText);
-                }
+                Console.Error.WriteLine(e.SpeechErrorText);
             };
 
-            micClient.OnPartialResponseReceived += (sender, eventArgs) =>
+            micClient.OnPartialResponseReceived += (s, e) =>
             {
-                Console.Write(eventArgs.PartialResult);
+                Console.Write(e.PartialResult);
                 Console.SetCursorPosition(0, Console.CursorTop);
+            };
+
+            micClient.OnResponseReceived += (s, e) =>
+            {
+                if (e.PhraseResponse.RecognitionStatus == RecognitionStatus.RecognitionSuccess)
+                {
+                    Console.WriteLine(e.PhraseResponse.Results[0].DisplayText);
+                }
             };
 
             micClient.StartMicAndRecognition();
